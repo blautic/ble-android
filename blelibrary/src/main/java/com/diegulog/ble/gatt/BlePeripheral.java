@@ -1287,8 +1287,7 @@ public class BlePeripheral {
         }
 
         // Check if characteristic has NOTIFY or INDICATE properties and set the correct byte value to be written
-        final byte[] value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE;
-        final byte[] finalValue = enable ? value : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
+        final byte[] finalValue = enable ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
 
         final boolean result = commandQueue.add(new Runnable() {
             @Override
@@ -1300,18 +1299,31 @@ public class BlePeripheral {
                 // First try to set notification for Gatt object
                 if (!bluetoothGatt.setCharacteristicNotification(characteristic, enable)) {
                     Timber.e("setCharacteristicNotification failed for characteristic: %s", characteristic.getUuid());
+                    completedCommand();
+                    return;
                 }
-                /*
+
+                // Then write to CCC descriptor
+                // complete command in 500ms if no there is no descriptor to write
+                if(characteristic.getDescriptors().isEmpty()){
+                    callbackHandler.postDelayed(() -> completedCommand(), AVG_REQUEST_CONNECTION_PRIORITY_DURATION);
+                    return;
+                }
+
                 for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
+                    currentWriteBytes = finalValue;
                     descriptor.setValue(finalValue);
-                    adjustWriteTypeIfNeeded(descriptor);
-                if (!bluetoothGatt.writeDescriptor(descriptor)) {
+                    if (bluetoothGatt.writeDescriptor(descriptor)) {
+                        nrTries++;
+                    } else {
                         Timber.e("writeDescriptor failed for descriptor: %s", descriptor.getUuid());
+                        completedCommand();
                     }
-                }*/
-                completedCommand();
+                }
+
             }
         });
+
 
         if (result) {
             nextCommand();
