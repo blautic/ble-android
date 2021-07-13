@@ -1297,30 +1297,12 @@ public class BlePeripheral {
                     return;
                 }
                 // First try to set notification for Gatt object
-                if (!bluetoothGatt.setCharacteristicNotification(characteristic, enable)) {
+                if (bluetoothGatt.setCharacteristicNotification(characteristic, enable)) {
+                    callbackHandler.postDelayed(() -> completedCommand(), 200);
+                }else{
                     Timber.e("setCharacteristicNotification failed for characteristic: %s", characteristic.getUuid());
                     completedCommand();
-                    return;
                 }
-
-                // Then write to CCC descriptor
-                // complete command in 500ms if no there is no descriptor to write
-                if(characteristic.getDescriptors().isEmpty()){
-                    callbackHandler.postDelayed(() -> completedCommand(), AVG_REQUEST_CONNECTION_PRIORITY_DURATION);
-                    return;
-                }
-
-                for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
-                    currentWriteBytes = finalValue;
-                    descriptor.setValue(finalValue);
-                    if (bluetoothGatt.writeDescriptor(descriptor)) {
-                        nrTries++;
-                    } else {
-                        Timber.e("writeDescriptor failed for descriptor: %s", descriptor.getUuid());
-                        completedCommand();
-                    }
-                }
-
             }
         });
 
