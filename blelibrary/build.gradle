@@ -1,5 +1,7 @@
 plugins {
     id 'com.android.library'
+    id 'maven-publish'
+   id 'signing'
 }
 
 android {
@@ -22,6 +24,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -35,4 +39,78 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     api 'org.jetbrains:annotations:19.0.0'
     api 'com.jakewharton.timber:timber:4.7.1'
+}
+
+task androidSourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from android.sourceSets.main.java.srcDirs
+    from android.sourceSets.main.kotlin.srcDirs
+}
+
+artifacts {
+    archives androidSourcesJar
+}
+
+ext {
+    GROUP_ID = "io.github.diegulog" // your project id registered in Sonatype
+    ARTIFACT_ID = "ble-android" // name of your library
+    VERSION = "1.0.0"
+    SITE_URL = 'https://github.com/diegulog/ble-android'
+    GIT_URL = 'https://github.com/diegulog/ble-android.git'
+}
+
+
+group = GROUP_ID
+version = VERSION
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+
+                groupId GROUP_ID
+                artifactId ARTIFACT_ID
+                version VERSION
+
+                from components.release
+                artifact androidSourcesJar
+
+                pom {
+                    name = ARTIFACT_ID
+                    description = 'Ble android library '
+                    url = SITE_URL
+                    licenses {
+                        // Your licensing information
+                        license {
+                            name = 'The Apache Software License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'diegulog'
+                            name = 'Diego Gl'
+                            email = 'diegulog@gmail.com'
+                        }
+                        // More developers if any...
+                    }
+
+                    scm {
+                        connection = GIT_URL
+                        developerConnection = GIT_URL
+                        url = SITE_URL
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    useInMemoryPgpKeys(
+            System.getenv("OSS_SIGNING_KEY_ID"),
+            System.getenv("OSS_SIGNING_KEY"),
+            System.getenv("OSS_SIGNING_PASSWORD"),
+    )
+    sign publishing.publications
 }

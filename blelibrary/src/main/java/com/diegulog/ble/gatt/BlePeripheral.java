@@ -388,7 +388,7 @@ public class BlePeripheral {
             final GattStatus gattStatus = GattStatus.fromValue(status);
             if (gattStatus == GattStatus.SUCCESS) {
                 String msg = String.format(Locale.ENGLISH, "connection parameters: interval=%.1fms latency=%d timeout=%ds", interval * 1.25f, latency, timeout / 100);
-                Timber.d(msg);
+                Timber.d("%s",msg);
             } else {
                 Timber.e("connection parameters update failed with status '%s'", gattStatus);
             }

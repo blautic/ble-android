@@ -1,7 +1,6 @@
-package com.diegulog.ble;
+package com.diegulog.bleexample;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
