@@ -1287,8 +1287,7 @@ public class BlePeripheral {
         }
 
         // Check if characteristic has NOTIFY or INDICATE properties and set the correct byte value to be written
-        final byte[] value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE;
-        final byte[] finalValue = enable ? value : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
+        final byte[] finalValue = enable ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
 
         final boolean result = commandQueue.add(new Runnable() {
             @Override
@@ -1298,20 +1297,15 @@ public class BlePeripheral {
                     return;
                 }
                 // First try to set notification for Gatt object
-                if (!bluetoothGatt.setCharacteristicNotification(characteristic, enable)) {
+                if (bluetoothGatt.setCharacteristicNotification(characteristic, enable)) {
+                    callbackHandler.postDelayed(() -> completedCommand(), 200);
+                }else{
                     Timber.e("setCharacteristicNotification failed for characteristic: %s", characteristic.getUuid());
+                    completedCommand();
                 }
-                /*
-                for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
-                    descriptor.setValue(finalValue);
-                    adjustWriteTypeIfNeeded(descriptor);
-                if (!bluetoothGatt.writeDescriptor(descriptor)) {
-                        Timber.e("writeDescriptor failed for descriptor: %s", descriptor.getUuid());
-                    }
-                }*/
-                completedCommand();
             }
         });
+
 
         if (result) {
             nextCommand();

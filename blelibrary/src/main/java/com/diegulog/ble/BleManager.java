@@ -287,6 +287,14 @@ public class BleManager {
         scannedPeripherals.clear();
         context.unregisterReceiver(adapterStateReceiver);
     }
+    
+    public void enableLog(boolean enable){
+        if(enable){
+            Timber.plant(new Timber.DebugTree());
+        }else {
+            Timber.uprootAll();
+        }
+    }
 
     private ScanSettings getScanSettings(@NotNull final ScanMode scanMode) {
         Objects.requireNonNull(scanMode, "scanMode is null");
