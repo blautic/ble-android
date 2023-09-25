@@ -306,6 +306,7 @@ public class BleManager {
                     .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
                     .setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT)
                     .setReportDelay(0L)
+                    .setLegacy(false)
                     .build();
         } else {
             return new ScanSettings.Builder()
